@@ -71,13 +71,10 @@ volatile bool tick = false;
   DIDR0 = 0b00111111; // disable digital input buffers of the analog pins
   DDRB = 0;   // All Port B pins set to input
   PORTB = 0xff;  // All Port B pins set to pull-up
-  DDRC = 0;   // All Port C pins set to input
-  PORTC = 0x7f;  // All Port C pins set to pullup
+  DDRC = (1<<DDC5);   // Port C pins set to input except PC5 output
+  PORTC = 0b01011111;  // Port C pins set to pullup except PC5 LOW
   DDRD = 0;   // All Port D pins set to input
   PORTD = 0xff;  // All Port D pins set to pullup
-
-  /* Now modify DDRC setting pin PC5 for output */
-  DDRC = (1<<DDC5);
   
   /* prepare a 1-second interrupt from Timer/Counter2 */
   /* Configure Timer/Counter2 for 32KHz operation */
