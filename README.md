@@ -293,7 +293,7 @@ I have used the same technique to fashion long-running, battery-operated, accura
 
 Making a timepiece was not my real goal, however. The capacity to cut current down to near zero between tasks in an autonomously periodic microcontroller application intrigued me strongly. 
 
-Combining a 32 KHz watch crystal with Timer 2 in asynchronous mode shows me a pathway toward many different applications for a network-of-things around the house.
+Combining a 32 KHz watch crystal with Timer 2 in asynchronous mode shows me a pathway toward many different applications for a network of battery-operated things around the house.
 
 It has to be done with bare microcontrollers, by the way.  One cannot achieve the same result with an Arduino, for two reasons. The XTAL pins there are occupied by the 16 MHz crystal driving the system clock. And there would remain the other devices on the board that also consume power.
 
