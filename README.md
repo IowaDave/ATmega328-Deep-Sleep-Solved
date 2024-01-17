@@ -134,7 +134,7 @@ A brief discussion of calibration follows for the sake of completeness.
 
 Microchip puts a default value into OSCCAL by which it aims to place the oscillator's frequency somewhere between 7.2 MHz and 8.8 MHz. Thankfully, we can fine-tune it rather precisely if we wish. See discussion on pages 43, 46 and Figures 31-368 through 31-370 on pages 520-521 in the datasheet.
 
-I found an oscilloscope very helpful for measuring the frequency of the system clock. Writing logic level "0" to the CKOUT bit in the low fuse byte directs the clock's square wave onto the CLKO pin, which is pin 14 on the DIP28 package of a '328. Restore the CKOUT bit to "1" to regain use of the xx pin for I/O purposes.
+I found an oscilloscope very helpful for measuring the frequency of the system clock. Writing logic level "0" to the CKOUT bit in the low fuse byte directs the clock's square wave onto the CLKO pin, which is pin PB0 (#14 on the DIP28 package of a '328). Restore the CKOUT bit to "1" to regain use of the pin for I/O purposes.
 
 ### Select the crystal source for Timer 2
 
@@ -149,9 +149,9 @@ Writing the AS2 bit in the Asynchronous Status Register, ASSR, to logic level 1 
 #### Update relevant Timer 2 registers
 **Important!** 
 
-Switching into (or back from) asynchronous mode affects five other registers in the Timer/Counter 2 peripheral. 
+Switching into (or back from) asynchronous mode affects five other registers in the Timer/Counter 2 peripheral. These registers, in turn, can alter the behavior of the timer interrupt.
 
-Plan to re-write the Counter, two Control registers and two Compare registers after the change. Writing zeros will serve the purpose. The example goes ahead and selects a prescaler value in Control Register B at this point.
+Plan to re-write the Counter, two Control registers and two Compare registers after the change, assigning them values suiting your application. The applicable values in the example are all zero, except for Control Register B which receives a prescaler selection code at this point.
 
 ```
   TCNT2 = 0;		// start count at zero
@@ -195,7 +195,7 @@ It means the Timer's counter register will increment from zero up to 255 during 
 The flag goes to logic 1 when the overflow occurs.
 
 #### Enable the Timer 2 Interrupt
-The Overflow Flag can trigger an interrupt as well, if interrupts are enabled.
+The Overflow Flag can trigger an interrupt as well, if interrupts are enabled. The interrupt is what will wake up the sleeping processor.
 
 The example enables the Timer 2 Overflow interrupt.
 
@@ -217,7 +217,7 @@ There's more.
 >If Timer/Counter2 is used to wake the device up from Power-save or ADC Noise Reduction mode, precautions must be taken if the user wants to re-enter one of these modes: If re-entering sleep mode within the TOSC1 cycle, the interrupt will immediately occur and the device wake up again. The result is multiple interrupts and wake-ups within one TOSC1 cycle from the first interrupt. If the user is in doubt whether the time before re-entering Power-save or ADC Noise Reduction mode is sufficient, the following algorithm can be used to ensure that one TOSC1 cycle has elapsed:
 a) write a value to TCCR2x, TCNT2, or OCR2x; b) wait until the corresponding Update Busy Flag in ASSR returns to zero.
 
-These paragraphs tell me it would be wise to perform the synchronization wait prior to every entry into sleep mode. The example does this by writing to the OCR2B register, which otherwise plays no role in the program.
+These paragraphs tell me it would be wise to perform the synchronization wait routinely prior to every entry into sleep mode. The example does this by writing to the OCR2B register, which otherwise plays no role in the program.
 
 ```
   /* verify TC2 is ready for sleep, see datasheet section 18.9 */
@@ -235,15 +235,19 @@ Now at last we are ready to enter Power Save Sleep mode.
 My personal coding style preference is to place those instructions at the end of the ```loop()``` code block. I put the repetitive task code at the top of the ```loop()``` where it will be executed the first time through and then again every time the processor returns from sleeping.
 
 #### Synchronize Yet Again After Sleep
-Comes now a key trick that eluded me for a long and puzzled time. I was getting interrupts that would wake up the processor. But it seemed I might be getting more than one interrupt in rapid succession. Something like that was confusing my programs, preventing them from processing their periodic tasks predictably.
+Comes now a key trick that eluded me for a long and puzzled time. I was getting interrupts that would wake up the processor. But it seemed I might be getting more than one interrupt in rapid succession.
+
+I could not figure it out. Waking up the processor was confusing my programs, preventing them from processing their periodic tasks predictably. I read and re-read the datasheet until my eyes would take it no more and closed for the night.
 
 The datasheet attempts to explain the wake-up phase this way:
 
->Description of wake up from Power-save or ADC Noise Reduction mode when the timer is clocked asynchronously: When the interrupt condition is met, the wake up process is started on the following cycle of the timer clock, that is, the timer is always advanced by at least one before the processor can read the counter value. After wake-up, the MCU is halted for four cycles, it executes the interrupt routine, and resumes execution from the instruction following SLEEP... The phase of the TOSC clock after waking up from Power-save mode is essentially unpredictable, as it depends on the wake-up time... During asynchronous operation, the synchronization of the Interrupt Flags for the asynchronous timer takes 3 processor cycles plus one timer cycle. The timer is therefore advanced by at least one before the processor can read the timer value causing the setting of the Interrupt Flag. 
+>Description of wake up from Power-save or ADC Noise Reduction mode when the timer is clocked asynchronously: When the interrupt condition is met, the wake up process is started on the following cycle of the timer clock, that is, the timer is always advanced by at least one before the processor can read the counter value. After wake-up, the MCU is halted for four cycles, it executes the interrupt routine, and resumes execution from the instruction following SLEEP... The phase of the TOSC clock after waking up from Power-save mode is essentially unpredictable, as it depends on the wake-up time... During asynchronous operation, the synchronization of the Interrupt Flags for the asynchronous timer takes 3 processor cycles plus one timer cycle. The timer is therefore advanced by at least one before the processor can read the timer value causing the setting of the Interrupt Flag.
+
+Something there is in a pillow that enjoys a puzzle, and in the morning an answer appeared as the first conscious thought of a new day.
 
 Hmm...
 
-I concluded that synchronization appears necessary again as the processor wakes up in the Timer 2 interrupt service routine (ISR). However in this situation, rather than write to a register and wait for the sync bits to clear, I found it effective to follow this sequence:
+Synchronization appears necessary again as the processor wakes up in the Timer 2 interrupt service routine (ISR). However in this situation, rather than write to a register and wait for the sync bits to clear, I found it effective to follow this sequence:
 
 ```
   /* disable sleep mode routinely upon waking up */
@@ -269,7 +273,7 @@ Other steps can be take to conserve power. I am not going to elaborate on them h
 
 The example program demonstrates shutting down the peripherals.
 
-For that and the remaining steps, well-written articles are available online explaining all about it. For the moment, I leave to the reader all the joy of finding them.
+For that and the remaining steps also, well-written articles are available online explaining all about it. For the moment, I leave to the reader all the joy of finding them.
 
 
 ### The Results
