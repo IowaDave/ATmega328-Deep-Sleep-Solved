@@ -237,7 +237,7 @@ My personal coding style preference is to place those instructions at the end of
 #### Synchronize Yet Again After Sleep
 Comes now a key trick that eluded me for a long and puzzled time. I was getting interrupts that would wake up the processor. But it seemed I might be getting more than one interrupt in rapid succession.
 
-I could not figure it out. Waking up the processor was confusing my programs, preventing them from processing their periodic tasks predictably. I read and re-read the datasheet until my eyes would take it no more and closed for the night.
+I could not figure it out. Waking up the processor was confusing my programs, preventing them from performing their periodic tasks predictably. I read and re-read the datasheet until my eyes would take it no more and closed for the night.
 
 The datasheet attempts to explain the wake-up phase this way:
 
