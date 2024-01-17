@@ -126,11 +126,15 @@ First, ensure that the oscillator frequency passes through the System Clock Pres
 ```
 
 ##### Calibration
-Second, optionally, write a value to the OSCCAL register to calibrate the oscillator's frequency. Microchip puts a default value in there which may bring the oscillator to somewhere between 7.2 MHz and 8.8 MHz. Thankfully, we can fine-tune it rather precisely. See discussion on pages 43, 46 and Figures 31-368 through 31-370 on pages 520-521 in the datasheet.
+Second, optionally, write a value to the OSCCAL register to calibrate the oscillator's frequency. 
+
+Calibrating the internal oscillator is not demonstrated in the example program because not needed; the 32 KHz crystal regulates the time-critical part of it. 
+
+A brief discussion of calibration follows for the sake of completeness.
+
+Microchip puts a default value into OSCCAL by which it aims to place the oscillator's frequency somewhere between 7.2 MHz and 8.8 MHz. Thankfully, we can fine-tune it rather precisely if we wish. See discussion on pages 43, 46 and Figures 31-368 through 31-370 on pages 520-521 in the datasheet.
 
 I found an oscilloscope very helpful for measuring the frequency of the system clock. Writing logic level "0" to the CKOUT bit in the low fuse byte directs the clock's square wave onto the CLKO pin, which is pin 14 on the DIP28 package of a '328. Restore the CKOUT bit to "1" to regain use of the xx pin for I/O purposes.
-
-Calibrating the internal oscillator is not demonstrated in the example program because not needed; the 32 KHz crystal regulates the time-critical part of it.
 
 ### Select the crystal source for Timer 2
 
@@ -143,7 +147,9 @@ Writing the AS2 bit in the Asynchronous Status Register, ASSR, to logic level 1 
 ```
 
 #### Update relevant Timer 2 registers
-Important! Switching into (or back from) asynchronous mode affects five other registers in the Timer/Counter 2 peripheral. 
+**Important!** 
+
+Switching into (or back from) asynchronous mode affects five other registers in the Timer/Counter 2 peripheral. 
 
 Plan to re-write the Counter, two Control registers and two Compare registers after the change. Writing zeros will serve the purpose. The example goes ahead and selects a prescaler value in Control Register B at this point.
 
@@ -159,7 +165,7 @@ Plan to re-write the Counter, two Control registers and two Compare registers af
 
 See pages 165-166 in the datasheet for details of the clock select bits. The prescaler value will be discussed further, below.
 
-#### Synchronize When Setting Up the Timer**
+#### Synchronize When Setting Up the Timer
 
 When Timer 2 is being clocked by the 32k crystal, it runs independently of the system clock. The two clocks' signals rise and fall at different speeds and at different times. The differences impose necessary delays when writing to or reading from certain registers in the Timer 2 peripheral. 
 
@@ -211,7 +217,7 @@ There's more.
 >If Timer/Counter2 is used to wake the device up from Power-save or ADC Noise Reduction mode, precautions must be taken if the user wants to re-enter one of these modes: If re-entering sleep mode within the TOSC1 cycle, the interrupt will immediately occur and the device wake up again. The result is multiple interrupts and wake-ups within one TOSC1 cycle from the first interrupt. If the user is in doubt whether the time before re-entering Power-save or ADC Noise Reduction mode is sufficient, the following algorithm can be used to ensure that one TOSC1 cycle has elapsed:
 a) write a value to TCCR2x, TCNT2, or OCR2x; b) wait until the corresponding Update Busy Flag in ASSR returns to zero.
 
-What this comes down to in my mind is to perform the synchronization wait prior to every entry into sleep mode. The example does this by writing to the OCR2B register, which otherwise plays no role in the program.
+These paragraphs tell me it would be wise to perform the synchronization wait prior to every entry into sleep mode. The example does this by writing to the OCR2B register, which otherwise plays no role in the program.
 
 ```
   /* verify TC2 is ready for sleep, see datasheet section 18.9 */
@@ -229,7 +235,7 @@ Now at last we are ready to enter Power Save Sleep mode.
 My personal coding style preference is to place those instructions at the end of the ```loop()``` code block. I put the repetitive task code at the top of the ```loop()``` where it will be executed the first time through and then again every time the processor returns from sleeping.
 
 #### Synchronize Yet Again After Sleep
-Comes now a key trick that eluded me for a long and puzzled time. I was getting interrupts that would wake up the processor. But it seemed I might be getting more than one interrupt in rapid succession. Something like that was confusing my programs, preventing them from processing their periodic tasks correctly.
+Comes now a key trick that eluded me for a long and puzzled time. I was getting interrupts that would wake up the processor. But it seemed I might be getting more than one interrupt in rapid succession. Something like that was confusing my programs, preventing them from processing their periodic tasks predictably.
 
 The datasheet attempts to explain the wake-up phase this way:
 
@@ -246,7 +252,7 @@ I concluded that synchronization appears necessary again as the processor wakes 
   while (TCNT2 < 3) { ; }
 ```
 
-The wait appears to allow the timer to synchronize with the system clock sufficiently to resolve the interrupt flags properly. To be honest, I cannot explain it better than that.  
+The wait appears to allow the timer to synchronize with the system clock sufficiently to resolve the interrupt flags properly. Honestly, I cannot explain it better than that.  
 
 Those are the secrets that I dug out of the datasheet for Power Save Sleep with an asynchronous Timer 2 interrupt waking it up.
 
