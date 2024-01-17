@@ -192,7 +192,11 @@ It means the Timer's counter register will increment from zero up to 255 during 
   while ( ! (TIFR2 & (1<<TOV2)) ) { ; /* wait */ }
 ```
 
-The flag goes to logic 1 when the overflow occurs.
+The flag goes to logic 1 when the overflow occurs. We wait until it does.
+
+"Whoa!" you say. "Dave is using the crystal to time its own pause while it stabilizes?"
+
+Yes, why not? The crystal is running, though perhaps slightly less perfectly during the first second, a minor concern, and this choice allows me to reduce power consumption by turning off Timer 0 which disables the ```delay()``` function. 
 
 #### Enable the Timer 2 Interrupt
 The Overflow Flag can trigger an interrupt as well, if interrupts are enabled. The interrupt is what will wake up the sleeping processor.
@@ -256,7 +260,7 @@ Synchronization appears necessary again as the processor wakes up in the Timer 2
   while (TCNT2 < 3) { ; }
 ```
 
-The wait appears to allow the timer to synchronize with the system clock sufficiently to resolve the interrupt flags properly. Honestly, I cannot explain it better than that.  
+The wait appears to allow the timer to synchronize with the system clock sufficiently to resolve the interrupt flags properly. I wish I could explain it better than that.  
 
 Those are the secrets that I dug out of the datasheet for Power Save Sleep with an asynchronous Timer 2 interrupt waking it up.
 
@@ -265,7 +269,7 @@ The example demonstrates it simply, by turning an LED on and off periodically at
 ### Power Reduction Was The Goal of This Project
 Putting the '328 to sleep is one part of a larger strategy toward minimizing current consumption.
 
-Other steps can be take to conserve power. I am not going to elaborate on them here. They include:
+Other steps can be take to conserve power. I do not elaborate on them here. They include:
 
 * Turn off unneeded peripherals.
 * Slow the processor speed.
