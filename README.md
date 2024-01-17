@@ -222,7 +222,7 @@ These paragraphs tell me it would be wise to perform the synchronization wait pr
 ```
   /* verify TC2 is ready for sleep, see datasheet section 18.9 */
   OCR2B = 0;  // write an arbitrary value to this unused register
-  while (ASSR & OCR2BUB) { ; /* wait for the update bit to clear */ }
+  while (ASSR & (1<<OCR2BUB)) { ; /* wait for the update bit to clear */ }
 ```
 
 Now at last we are ready to enter Power Save Sleep mode.

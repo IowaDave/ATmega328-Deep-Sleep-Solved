@@ -111,7 +111,7 @@ void loop() {
 
   /* verify TC2 is ready for sleep, see datasheet section 18.9 */
   OCR2B = 0;  // write an arbitrary value to this unused register
-  while (ASSR & OCR2BUB) { ; /* wait for the update bit to clear */ }
+  while (ASSR & (1<<OCR2BUB)) { ; /* wait for the update bit to clear */ }
   
   /* now it is safe to put CPU to sleep */
   SMCR |= (0b0111<<SE);        // enable sleep in Power-Save mode
