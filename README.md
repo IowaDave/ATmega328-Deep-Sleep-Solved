@@ -100,9 +100,7 @@ This article addresses readers having an intermediate level of prior knowledge a
 
 #### 32K Watch Crystal
 
-<img src="images/Crystal.jpg" alt="32 KHz watch crystal" width="33%">
-
-<!-- ![32 KHz watch crystal](images/Crystal.jpg) -->
+![32 KHz watch crystal](images/Crystal.jpg)
 
 Solder one of these little cylindrical devices onto the TOSC1 and TOSC2 pins (pins 9 and 10 on the DIP28 version of a '328.) The capacitance of the crystal should be 12.5 pf or less. Those of 12.5 pf are fairly easy to procure inexpensively. Their Equivalent Series Resistance should not exceed 30 kOhms. I have not needed to add external capacitors with these 32k crystals. The datasheet indicates that the '328 implements the necessary components internally.
 
