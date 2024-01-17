@@ -271,7 +271,7 @@ The example demonstrates it simply, by turning an LED on and off periodically at
 ### Power Reduction Was The Goal of This Project
 Putting the '328 to sleep is one part of a larger strategy toward minimizing current consumption.
 
-Other steps can be take to conserve power. I do not elaborate on them here. They include:
+Other steps can be taken to conserve power. I do not elaborate on them here. They include:
 
 * Turn off unneeded peripherals.
 * Slow the processor speed.
@@ -279,7 +279,7 @@ Other steps can be take to conserve power. I do not elaborate on them here. They
 
 The example program demonstrates shutting down the peripherals.
 
-For that and the remaining steps also, well-written articles are available online explaining all about it. For the moment, I leave to the reader all the joy of finding them.
+For that and the remaining steps also, well-written articles are available online explaining all about it. I might scribble something of my own someday. For the moment, I leave to the reader all the joy of discovery.
 
 
 ### The Results
