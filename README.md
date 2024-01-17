@@ -1,8 +1,10 @@
 # ATmega328-Power-Save-Sleep-Solved
 
-![ATmega328P with 32KHz watch crystal](images/ATmega328P_with_32KHzCrystal.jpg)
+![ATmega328P with 32 KHz watch crystal](images/ATmega328P_with_32KHzCrystal.jpg)
 
-Learning the tricks to waking up a microcontroller with an inexpensive, 32768 Hz watch crystal. Discovering how the "asynchronous" mode of Timer/Counter 2 opens a path toward long battery life.
+*Learning the tricks to waking up a microcontroller with an inexpensive, 32768 Hz watch crystal.*
+
+*Discovering how the "asynchronous" mode of Timer/Counter 2 opens a path toward long battery life.*
 
 This article aims to interpret terse but thorough technical language found in the datasheet so that non-professionals can understand it, with a worked example.
 
@@ -80,9 +82,11 @@ In this most thrifty mode, the device can reduce power consumption to about 1/10
 
 Unfortunately, we cannot wake up from Power Down sleep by means of an internal timer because it turns off the timers.
 
-Power Save sleep mode is the next best thing. When combined with a 32 KHz watch crystal and Timer/Counter 2, it can reduce the operating current of a '328 to near 1.5 *micro*Amps. That's still a very low rate of current. 
+Power Save sleep mode is the next best thing. When combined with a 32 KHz watch crystal and Timer/Counter 2, it can reduce the operating current of a '328 to near 1.5 *micro*Amps. 
 
-The technique described here solders a 32kHz watch crystal onto the XTAL pins of a '328. So modified, the controller needs no other, additional, external Real Time Clock device to wake it up periodically.
+That's still a very low rate of current. Batteries can carry that tiny load for a long time.
+
+The technique described here solders a 32 KHz watch crystal onto the XTAL pins of a '328. So modified, the controller needs no other, additional, external Real Time Clock device to wake it up periodically.
 
 ### What It Would Help Readers to Know Already
 This article addresses readers having an intermediate level of prior knowledge and experience with:
@@ -96,11 +100,11 @@ This article addresses readers having an intermediate level of prior knowledge a
 
 #### 32K Watch Crystal
 
-![32KHz watch crystal](images/Crystal.jpg)
+![32 KHz watch crystal](images/Crystal.jpg)
 
 Solder one of these little cylindrical devices onto the TOSC1 and TOSC2 pins (pins 9 and 10 on the DIP28 version of a '328.) The capacitance of the crystal should be 12.5 pf or less. Those of 12.5 pf are fairly easy to procure inexpensively. Their Equivalent Series Resistance should not exceed 30 kOhms. I have not needed to add external capacitors with these 32k crystals. The datasheet indicates that the '328 implements the necessary components internally.
 
-Please do solder their tiny legs onto the pins, however. It won't work reliably to poke the tiny leads into a breadboard.
+Please do solder their tiny legs onto the pins, however. Such thin leads might not make reliable contact when poked into a breadboard.
 
 #### Fuses
 
@@ -157,8 +161,8 @@ Plan to re-write the Counter, two Control registers and two Compare registers af
   TCNT2 = 0;		// start count at zero
   TCCR2A = 0;		// normal mode
   TCCR2B = 
-    0b00000<<3;		// normal mode, plus
-       | 0b101;		// the clock-select bits for the /128 prescaler 
+      0			// normal mode,
+    | 0b101;		// plus the clock-select bits for the /128 prescaler 
   OCR2A = 0;		// not used, but clear it anyway
   OCR2B = 0;		// not used, but clear it anyway
 ```
@@ -167,11 +171,11 @@ See pages 165-166 in the datasheet for details of the clock select bits. The pre
 
 #### Synchronize When Setting Up the Timer
 
-When Timer 2 is being clocked by the 32k crystal, it runs independently of the system clock. The two clocks' signals rise and fall at different speeds and at different times. The differences impose necessary delays when writing to or reading from certain registers in the Timer 2 peripheral. 
+When Timer 2 is being clocked by the 32k crystal, it runs independently of the system clock. The two clocks' signals rise and fall at different speeds and at different times. The differences impose necessary delays when writing to or reading from the five registers listed above. 
 
 As I understand it, the delays last until the two clocks "synchronize" for an instant. This occurs upon the first or second subsequent rising edge on the TOSC1 pin attached to the crystal oscillator. Your code must allow for the delays.
 
-Five of the bits in the Asynchronous Status Register, ASSR, give indication when writes to the five registers mentioned above have not yet synchronized. I will refer to them as the "sync bits". The sync bits become clear (logic 0) after the writes take effect and it is safe to proceed.
+Five of the bits in the Asynchronous Status Register, ASSR, give indication when writes to the five registers have not yet synchronized. I will refer to them as the "sync bits". The sync bits become clear (logic 0) after the writes take effect and it is safe to proceed.
 
 ```
   while (ASSR & 0b00011111) { ; /* wait */}
@@ -196,7 +200,7 @@ The flag goes to logic 1 when the overflow occurs. We wait until it does.
 
 "Whoa!" you say. "Dave is using the crystal to time its own pause while it stabilizes?"
 
-Yes, why not? The crystal is running, though perhaps slightly less perfectly during the first second, a minor concern, and this choice allows me to reduce power consumption by turning off Timer 0 which disables the ```delay()``` function. 
+Yes, why not? The crystal is running, though perhaps less perfectly during the first second, a minor concern, and this choice allows me to reduce power consumption by turning off Timer 0 which disables the ```delay()``` function. 
 
 #### Enable the Timer 2 Interrupt
 The Overflow Flag can trigger an interrupt as well, if interrupts are enabled. The interrupt is what will wake up the sleeping processor.
@@ -236,12 +240,10 @@ Now at last we are ready to enter Power Save Sleep mode.
   asm volatile ("sleep \n\t");
 ```
 
-My personal coding style preference is to place those instructions at the end of the ```loop()``` code block. I put the repetitive task code at the top of the ```loop()``` where it will be executed the first time through and then again every time the processor returns from sleeping.
+My personal coding style preference is to place those instructions at the end of the ```loop()``` code block. I put the repetitive task code at the top of the ```loop()``` where it will be executed once before sleeping and then again every time the processor returns from sleeping.
 
 #### Synchronize Yet Again After Sleep
-Comes now a key trick that eluded me for a long and puzzled time. I was getting interrupts that would wake up the processor. But it seemed I might be getting more than one interrupt in rapid succession.
-
-I could not figure it out. Waking up the processor was confusing my programs, preventing them from performing their periodic tasks predictably. I read and re-read the datasheet until my eyes would take it no more and closed for the night.
+Comes now a key trick that eluded me for a long and puzzled time. I was getting interrupts that would wake up the processor. But waking up the processor was confusing my programs, somehow preventing them from performing their periodic tasks predictably. I read and re-read the datasheet until my eyes would take it no more and closed for the night.
 
 The datasheet attempts to explain the wake-up phase this way:
 
