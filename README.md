@@ -34,7 +34,7 @@ When the delay lasts longer than the time it takes to do the "something", most o
 
 Projects designed to run on batteries need to eliminate the waste. One solution is to put the controller to sleep during the delay then wake it back up to perform the task. 
 
-A timer interrupt provides the wake-up signal at regular intervals. 
+A timer interrupt provides the wake-up signal after a specified interval. 
 
 The programmer adds a sleep instruction, a timer interrupt, and an Interrupt Service Routine (ISR) to the pattern.
 
@@ -84,7 +84,7 @@ Unfortunately, we cannot wake up from Power Down sleep by means of an internal t
 
 Power Save sleep mode is the next best thing. When combined with a 32 KHz watch crystal and Timer/Counter 2, it can reduce the operating current of a '328 to near 1.5 *micro*Amps. 
 
-That's still a very low rate of current. Batteries can carry that tiny load for a long time.
+That's still a very low rate of current. Batteries can carry such a tiny load for a long time.
 
 The technique described here solders a 32 KHz watch crystal onto the XTAL pins of a '328. So modified, the controller needs no other, additional, external Real Time Clock device to wake it up periodically.
 
@@ -100,7 +100,9 @@ This article addresses readers having an intermediate level of prior knowledge a
 
 #### 32K Watch Crystal
 
-![32 KHz watch crystal](images/Crystal.jpg)
+<img src="images/Crystal.jpg" alt="32 KHz watch crystal" width="33%">
+
+<!-- ![32 KHz watch crystal](images/Crystal.jpg) -->
 
 Solder one of these little cylindrical devices onto the TOSC1 and TOSC2 pins (pins 9 and 10 on the DIP28 version of a '328.) The capacitance of the crystal should be 12.5 pf or less. Those of 12.5 pf are fairly easy to procure inexpensively. Their Equivalent Series Resistance should not exceed 30 kOhms. I have not needed to add external capacitors with these 32k crystals. The datasheet indicates that the '328 implements the necessary components internally.
 
